@@ -1,5 +1,5 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
+using System;
 using System.IO;
 using System.Text;
 using System.Drawing;
@@ -20,6 +20,8 @@ class Program
   private const int _imageByteSize = _imageBitSize / 8;
   private const int _bufferSize = 4096;
   
+  static Queue<byte[]> imageQueue = new Queue<byte[]>();
+  
   static void Main(string[] args)
   {
     
@@ -39,16 +41,27 @@ class Program
     });
 
     HandleVideoStream(_bufferSize, baseStream);
-
-
+    
+    PythonManager pythonManager = new PythonManager("/Users/justusmatteson/Dev/OpenCVpy/.venv/bin/python3");
+    
+    Task.Factory.StartNew(() =>
+    {
+      while (imageQueue.Count > 0)
+      {
+        pythonManager.WriteImageToStdin(imageQueue.Dequeue());
+      }
+    });
+    
     process.WaitForExit();
+    Thread.Sleep(100000);
+    pythonManager.PythonProcess.Close();
   }
 
   private static ProcessStartInfo CreateProcessStartInfo()
   {
     var xDoc = XDocument.Load("Configuration.xml");
     var xmlSerializer = new XmlSerializer(typeof(Configuration));
-    var config = (Configuration)xmlSerializer.Deserialize(xDoc.CreateReader());
+    var config = xmlSerializer.Deserialize(xDoc.CreateReader()) as Configuration;
     
     
     
@@ -89,7 +102,9 @@ class Program
         
         if (bufferCount == _imageByteSize)
         {
-          imageBytes.Add(ms.ToArray());
+          var bytes = ms.ToArray();
+          imageBytes.Add(bytes);
+          imageQueue.Enqueue(bytes);
           bufferCount = 0;
           ms.Seek(0, SeekOrigin.Begin);
         }
@@ -97,11 +112,10 @@ class Program
 
       Console.WriteLine(Environment.NewLine);
       Console.WriteLine($"Buffer Count: {bufferCount}");
-
       Console.WriteLine($"Images Parsed: {imageBytes.Count}");
     }
     
-    WriteImageOut(imageBytes);
+    //WriteImageOut(imageBytes);
   }
 
   private static void WriteImageOut(List<byte[]> imageBytes)
@@ -114,30 +128,6 @@ class Program
         using (var ms = new MemoryStream(image))
         {
           var skImageInfo = new SKImageInfo(width, height, SKColorType.Rgba8888);
-          
-          using var skData = SKData.Create(ms);
-          using var codec = SKCodec.Create(skData);
-          
-          SKImage im = SKImage.FromPixels(skImageInfo,skData);
-          
-          using var encodedImage = im.Encode(); 
-          encodedImage.SaveTo(fs);
-          counter++;
-          
-        }
-      }
-    }
-  }
-  private static void WriteToBitmap(List<byte[]> imageBytes)
-  {
-    int counter = 0;
-    foreach (var image in imageBytes)
-    {
-      using (var fs = System.IO.File.Create($"image_{counter}.png"))
-      {
-        using (var ms = new MemoryStream(image))
-        {
-          var skImageInfo = new SKImageInfo(800, 800, SKColorType.Rgba8888);
           
           using var skData = SKData.Create(ms);
           using var codec = SKCodec.Create(skData);

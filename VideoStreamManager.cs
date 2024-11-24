@@ -15,7 +15,7 @@ class VideoStreamManager
   
   public VideoStreamManager(Configuration config, int bufferSize, Queue<Byte[]> imageQueue)
   {
-    var psi = VideoStreamManager.CreateProcessStartInfo(config);
+    var psi = CreateProcessStartInfo(config);
     Process process = new Process();
     process.StartInfo = psi;
     process.EnableRaisingEvents = true;
@@ -25,7 +25,7 @@ class VideoStreamManager
 
     Task.Factory.StartNew(() =>
     {
-      VideoStreamManager.HandleVideoStream(bufferSize, baseStream, imageQueue);
+      HandleVideoStream(bufferSize, baseStream, imageQueue);
     });
     
     VideoStreamProcess = process;

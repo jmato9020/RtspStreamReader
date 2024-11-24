@@ -3,6 +3,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element type="xs:string" name="ConnectionString"/>
+                <xs:element type="xs:string" name="PythonPath"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>

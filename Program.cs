@@ -1,16 +1,23 @@
-﻿using System.Diagnostics;
-using System;
-using System.IO;
-using System.Text;
-using System.Drawing;
+﻿using System.Reflection;
 using System.Xml.Linq;
 using System.Xml.Serialization;
-using SkiaSharp;
+using NetDaemon.AppModel;
+using Microsoft.Extensions.Hosting;
+using NetDaemon.Runtime;
+using NetDaemon.Extensions.Logging;
+using HomeNetDaemon.Access;
+using NetDaemon.HassModel;
 
 namespace FFMPEGReader;
 
+[NetDaemonApp]
 class Program
 {
+  static IHaContext HaContext { get; set; }
+  public Program(IHaContext haContext)
+  {
+    HaContext = haContext;
+  }
   //const int _imageBitSize = 15360000;
 
   private const int BufferSize = 4096;
@@ -19,13 +26,38 @@ class Program
   
   static void Main(string[] args)
   {
+
+    
+    ConfigureHomeAssistantConnection(args);
+  
+    
     var config = GetConfiguration();
 
     VideoStreamManager videoProcess = StartVideoProcessing(config);
     Thread.Sleep(5000);
-    PythonManager pyManager = StartPython(config); 
+    PythonManager pyManager = StartPython(config);
+
+
+    var services = new HomeNetDaemon.Access.Services(HaContext);
     
     videoProcess.VideoStreamProcess.WaitForExit();
+  }
+
+  private static void ConfigureHomeAssistantConnection(string[] args)
+  {
+    Host.CreateDefaultBuilder(args)
+      .UseNetDaemonAppSettings()
+      .UseNetDaemonDefaultLogging()
+      .UseNetDaemonRuntime()
+      .ConfigureServices((_, services) =>
+        services
+          .AddAppsFromAssembly(Assembly.GetExecutingAssembly())
+          .AddNetDaemonStateManager()
+          .AddHomeAssistantGenerated()
+      )
+      .Build()
+      .RunAsync()
+      .ConfigureAwait(false);
   }
 
   private static Configuration GetConfiguration()

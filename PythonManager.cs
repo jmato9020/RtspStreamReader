@@ -4,8 +4,10 @@ namespace FFMPEGReader;
 
 public class PythonManager
 {
-  public Process PythonProcess { get; }
-  public BinaryWriter PythonWriter { get; }
+  private Process PythonProcess { get; }
+  private BinaryWriter PythonWriter { get; }
+  
+  
 
   public PythonManager(string pythonPath, Queue<Byte[]> imageQueue)
   {
@@ -13,9 +15,9 @@ public class PythonManager
     start.FileName = pythonPath;
     var cmd = "PythonTools/cvpy.py";
     var args = "-u";
-    start.Arguments = string.Format("{0} {1}", cmd, args);
+    start.Arguments = $"{cmd} {args}";
     start.UseShellExecute = false;
-    start.RedirectStandardOutput = true;
+    start.RedirectStandardOutput = false;
     start.RedirectStandardInput = true;
 
     
@@ -42,6 +44,21 @@ public class PythonManager
         catch{ }
       }
     });
+
+    // Task.Factory.StartNew(() =>
+    // {
+    //   while (true)
+    //   {
+    //     var stream = process.StandardOutput;
+    //     var results = stream.ReadToEndAsync();
+    //     results.Wait();
+    //     if (results != null)
+    //     {
+    //       Console.WriteLine(results.Result);
+    //     }
+    //   }
+    //   
+    // });
   }
 
   public void WriteImageToStdin(byte[] imageBytes)

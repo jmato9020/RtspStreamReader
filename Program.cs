@@ -26,19 +26,13 @@ class Program
   
   static void Main(string[] args)
   {
-
-    
     ConfigureHomeAssistantConnection(args);
-  
     
     var config = GetConfiguration();
 
     VideoStreamManager videoProcess = StartVideoProcessing(config);
     Thread.Sleep(5000);
     PythonManager pyManager = StartPython(config);
-
-
-    var services = new HomeNetDaemon.Access.Services(HaContext);
     
     videoProcess.VideoStreamProcess.WaitForExit();
   }
@@ -75,7 +69,7 @@ class Program
 
   private static PythonManager StartPython(Configuration config)
   {
-    PythonManager pythonManager = new PythonManager(config.PythonPath, ImageQueue);
+    PythonManager pythonManager = new PythonManager(config.PythonPath, HaContext, ImageQueue);
     
     return pythonManager;
   }

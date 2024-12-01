@@ -23,5 +23,6 @@ while True:
     [[namelist.append(results[0].names[j.item()]) for j in i.cls] for i in results[0].boxes]
     print(''.join(f'{i},' for i in namelist))
     i=i+1
+    sys.stdout.flush()
     
     

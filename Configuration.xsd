@@ -3,8 +3,22 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element type="xs:string" name="ConnectionString"/>
-                <xs:element type="xs:string" name="PythonPath"/>
+                <xs:choice>
+                    <xs:element type="ExeConfiguration" name="ExeConfiguration"/>
+                    <xs:element type="PythonConfiguration" name="PythonConfiguration" />
+                </xs:choice>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
+    <xs:complexType name="PythonConfiguration">
+        <xs:sequence>
+            <xs:element type="xs:string" name="PythonPath"/>
+            <xs:element type="xs:string" name="CvpyPath" />
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ExeConfiguration">
+        <xs:sequence>
+            <xs:element type="xs:string" name="ExePath"/>
+        </xs:sequence>
+    </xs:complexType>
 </xs:schema>
